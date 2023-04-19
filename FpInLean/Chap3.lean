@@ -2,6 +2,14 @@ def onePlusOneIsTwo : 1 + 1 = 2 := rfl
 
 def OnePlusOneIsTwo : Prop := 1 + 1 = 2
 
+inductive Belongs {α : Type} (x : α) : List α → Prop where
+| here : {xs : List α} → Belongs x (x :: xs)
+| there {y : α} { xs : List α } : Belongs x xs → Belongs x (y::xs)
+
+#check Belongs 1 [1]
+
+theorem oneInOne : Belongs 1 [2, 1] := Belongs.there Belongs.here
+
 theorem onePlusOneIsTwo' : OnePlusOneIsTwo := rfl
 
 #check onePlusOneIsTwo'
