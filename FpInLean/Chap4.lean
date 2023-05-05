@@ -350,6 +350,8 @@ def perhapsPerhapsPerhapsNat : Option (Option (Option Nat)) :=
 instance : CoeDep (List α) (x :: xs) (NonEmpty α) where
   coe := { head := x, tail := xs }
 
+#check ([1, 2, 3] : NonEmpty Nat)
+
 structure Monoid where
   Carrier : Type
   neutral : Carrier

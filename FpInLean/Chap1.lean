@@ -102,12 +102,12 @@ inductive Either (α : Nat) β where
 #check Either (5 : Nat)
 #check (Either 9 Nat)
 
-structure PPoint (α : Type) where
+structure PPoint' (α : Type) where
   x : α
   y : α
 deriving Repr
 
-def replaceX (α : Type) (point : PPoint α) (newX : α) : PPoint α :=
+def replaceX (α : Type) (point : PPoint' α) (newX : α) : PPoint' α :=
   { point with x := newX }
 
 inductive Sign where

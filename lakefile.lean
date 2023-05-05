@@ -12,6 +12,10 @@ lean_lib «FpInLean» {
   -- add library configuration options here
 }
 
+lean_lib «Anu» {
+  -- add library configuration options here
+}
+
 @[default_target]
 lean_exe «fp-in-lean» {
   root := `Main
