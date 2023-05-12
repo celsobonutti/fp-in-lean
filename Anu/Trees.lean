@@ -5,25 +5,55 @@ inductive BinaryTree (α : Type) where
   | node : BinaryTree α → α → BinaryTree α → BinaryTree α
 deriving Repr
 
-inductive BinaryTree.Mem (a : α) : BinaryTree α → Prop
-  | here (left : BinaryTree α) (right : BinaryTree α) : BinaryTree.Mem a (BinaryTree.node left a right)
-  | left (b : α) { left right : BinaryTree α } : BinaryTree.Mem a left → BinaryTree.Mem a (BinaryTree.node left b right)
-  | right (b : α) { left right : BinaryTree α } : BinaryTree.Mem a right → BinaryTree.Mem a (BinaryTree.node left b right)
+-- inductive BinaryTree.Mem (a : α) : BinaryTree α → Prop
+--   | here (left : BinaryTree α) (right : BinaryTree α) : BinaryTree.Mem a (BinaryTree.node left a right)
+--   | left (b : α) { left right : BinaryTree α } : BinaryTree.Mem a left → BinaryTree.Mem a (BinaryTree.node left b right)
+--   | right (b : α) { left right : BinaryTree α } : BinaryTree.Mem a right → BinaryTree.Mem a (BinaryTree.node left b right)
+
+def BinaryTree.Mem (x : α) : BinaryTree α → Prop
+  | .null => False
+  | .node left y right => x = y ∨ Mem x left ∨ Mem x right
 
 instance : Membership α (BinaryTree α) where
   mem := BinaryTree.Mem
 
-def BinaryTree.depthOf [DecidableEq α] : (x : α) → {xs : BinaryTree α // x ∈ xs} → Nat
+instance Mem.decidable [DecidableEq α] (x : α) : ∀ xs : BinaryTree α, Decidable (x ∈ xs)
+  | BinaryTree.null => by
+    apply Decidable.isFalse
+    simp [Membership.mem, BinaryTree.Mem]
+  | BinaryTree.node left y right =>
+    if h : x = y then
+      isTrue <| by
+        constructor
+        exact h
+    else by
+      have := Mem.decidable x left
+      have := Mem.decidable x right
+      have : (x ∈ left ∨ x ∈ right) ↔ (x ∈ BinaryTree.node left y right) := by
+        simp [(· ∈ ·), BinaryTree.Mem, h]
+      exact decidable_of_decidable_of_iff this
+
+theorem Or.elimLeft (xs : α ∨ β) (x: ¬α) : β :=
+  match xs with
+  | Or.inl y => absurd y x
+  | Or.inr b => b
+
+def BinaryTree.depthOf [DecidableEq α] [BEq α] : (x : α) → {xs : BinaryTree α // x ∈ xs} → Nat
   | x, ⟨BinaryTree.node left a right, ok⟩ =>
-    if h : x = a then
+    if here : x = a then
       0
     else
-      let t : Mem x left ∨ Mem x right :=
-      match ok with
-      | BinaryTree.Mem.here _ _ => nomatch h rfl
-      | .left _ t => Or.inl t
-      | .right _ t => Or.inr t
-      sorry
+      if l : x ∈ left then
+        if r : x ∈ right then
+          1 + (min (BinaryTree.depthOf x ⟨ left, l ⟩) (BinaryTree.depthOf x ⟨ right, r ⟩))
+        else
+          1 + BinaryTree.depthOf x ⟨ left, l ⟩
+      else
+        1 + BinaryTree.depthOf x ⟨ right, (ok.elimLeft here).elimLeft l ⟩
+
+open BinaryTree in
+def tree := node (node null 2 (node null 10 (node null 1 null))) 5 (node null 9 (node null 8 (node null 25 null)))
+
 
 open BinaryTree in
 def BinaryTree.size : BinaryTree α → Nat
